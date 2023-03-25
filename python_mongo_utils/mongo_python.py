@@ -1,6 +1,5 @@
 import pymongo
-
-
+import time
 def set_mongo_connection(connection_string,database,collection):
     client = pymongo.MongoClient(connection_string)
     db = client[database]
@@ -8,7 +7,7 @@ def set_mongo_connection(connection_string,database,collection):
     return client,db,col
 
 
-def get_users(collection):
+def get_node_users(collection):
     documents = collection.find({"includes.users": {"$exists": True}})
     user_list = []
     for obj in documents:
@@ -40,4 +39,63 @@ def get_users(collection):
     return distinct_list_by_id
 
 
+#get all the tweets (only the 0th tweet) of the collection
+def get_node_tweets(collection):
+    documents = collection.find({"includes.tweets": {"$exists": True}})
+    twitter_list = []
 
+    for obj in documents:
+        tweet = obj['includes']['tweets'][0]
+        reference_tweets_list = []
+        reference_tweets = tweet.get('referenced_tweets',None)
+        if reference_tweets is not None:
+            for reference_tweet in reference_tweets:
+                reference_tweets_list.append({
+                    'type':reference_tweet['type'],
+                    'tweet_id': reference_tweet['id']
+                })
+        else:
+            reference_tweets_list = None
+
+
+        twitter_list.append({
+            'tweet_id': tweet['id'],
+            'author_id': tweet['author_id'],
+            'created_at': tweet['created_at'],
+            'retweet_count': tweet['public_metrics']['retweet_count'],
+            'referenced_tweets': reference_tweets_list,
+        })
+
+    return twitter_list
+
+
+#get all the unique hashtags (only the hashtags from the 0th tweet) of the collection
+def get_node_hashtags(collection):
+    documents = collection.find({"includes.tweets.0.entities.hashtags": {"$exists": True}})
+    # set() for unique hashtags
+    hashtag_set = set()
+    for obj in documents:
+        for hashtag in obj['includes']['tweets'][0]['entities']['hashtags']:
+            hashtag_set.add(hashtag['tag'])
+
+    hashtag_list = list(hashtag_set)
+
+    return hashtag_list
+
+
+# RELATIONSHIPS
+
+def get_relationship_has_hashtag(collection):
+    documents = collection.find({"includes.tweets.0.entities.hashtags": {"$exists": True}})
+    tweets_with_hashtags = []
+    for obj in documents:
+        tweet = obj['includes']['tweets'][0]
+        hashtag_list = []
+        for hashtag in tweet['entities']['hashtags']:
+            hashtag_list.append(hashtag['tag'])
+        tweets_with_hashtags.append({
+            'tweet_id': tweet['id'],
+            'hashtags': hashtag_list
+        })
+
+    return tweets_with_hashtags
