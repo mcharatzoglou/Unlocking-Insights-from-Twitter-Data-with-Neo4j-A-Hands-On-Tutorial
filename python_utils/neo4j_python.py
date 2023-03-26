@@ -1,15 +1,5 @@
-import py2neo
-from .mongo_python import set_mongo_connection, get_node_users, get_node_tweets, get_node_hashtags
-
-
-# insert data in Neo4j
-port = input("Enter Neo4j DB Bolt port: ")
-user = input("Enter Neo4j DB Username: ")
-pswd = input("Enter Neo4j DB Password: ")
-# graph = Graph("bolt://localhost:7687", auth=("neo4j", "neo4j_auth")
-
-graph = py2neo.Graph(port, auth=(user, pswd))
-
+from py2neo import Graph
+from mongo_python import set_mongo_connection, get_node_users, get_node_tweets, get_node_hashtags, get_relationship_has_hashtag
 
 def input_tweets(data):
     '''Create nodes with "Tweet" label in Neo4j'''
@@ -47,6 +37,26 @@ def input_tweets_tag_rel(rel_data):
             rel = py2neo.Relationship(tweet_node, "HAS_HASHTAG", hashtag_node)
             graph.create(rel)
 
+
+
+#  SAMPLE CODE
+client,database,collection = set_mongo_connection(
+    "mongodb://localhost:27017/",
+    "local",
+    "test"
+)
+
+#relationships
+has_hashtag = get_relationship_has_hashtag(collection)
+
+
+# insert data in Neo4j
+# port = input("Enter Neo4j DB Bolt port: ")
+# user = input("Enter Neo4j DB Username: ")
+# pswd = input("Enter Neo4j DB Password: ")
+graph = Graph("bolt://localhost:7687", auth=("neo4j", "neo4j_auth"))
+
+# graph = py2neo.Graph(port, auth=(user, pswd))
 
 # list of dicts for tweets
 twitter_list = get_node_tweets(collection)
