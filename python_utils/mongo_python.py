@@ -217,10 +217,10 @@ def get_relationship_used_urls(collection):
             url_set = set()
             for url in tweet['entities']['urls']:
                 url_set.add(url['url'])
-            hashtag_list = list(url_set)
+            url_list = list(url_set)
             user_used_urls[user_id] = {
                 'id': user_id,
-                'urls': hashtag_list
+                'urls': url_list
             }
         else:
             for url in tweet['entities']['urls']:
@@ -231,3 +231,29 @@ def get_relationship_used_urls(collection):
     user_used_urls = list(user_used_urls.values())
 
     return user_used_urls
+
+
+def get_relationship_mentioned(collection):
+    documents = collection.find({"includes.tweets.0.entities.mentions": {"$exists": True}})
+    user_mentioned_user = {}
+    for obj in documents:
+        tweet = obj['includes']['tweets'][0]
+        user_id = obj['includes']['users'][0]['id']
+        if user_id not in user_mentioned_user:
+            mention_set = set()
+            for mention in tweet['entities']['mentions']:
+                mention_set.add(mention['id'])
+            mention_list = list(mention_set)
+            user_mentioned_user[user_id] = {
+                'id': user_id,
+                'mentions': mention_list
+            }
+        else:
+            for mention in tweet['entities']['mentions']:
+                user_mentioned_user[user_id]['mentions'].append(mention['id'])
+            user_mentioned_user[user_id]['mentions'] = list(set(user_mentioned_user[user_id]['mentions']))
+
+    # convert dictionary to list
+    user_mentioned_user = list(user_mentioned_user.values())
+
+    return user_mentioned_user
