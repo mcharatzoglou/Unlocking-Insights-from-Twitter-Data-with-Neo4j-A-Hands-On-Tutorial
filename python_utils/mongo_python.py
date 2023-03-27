@@ -170,12 +170,12 @@ def get_relationship_has_url(collection):
         tweet_id = tweet['id']
         if tweet_id not in unique_ids:
             unique_ids.add(tweet_id)
-            url_list = []
+            url_set = set()
             for url in tweet['entities']['urls']:
-                url_list.append(url['url'])
+                url_set.add(url['url'])
             tweets_with_urls.append({
                 'tweet_id': tweet_id,
-                'urls': url_list
+                'urls': list(url_set)
             })
 
     return tweets_with_urls
@@ -257,3 +257,10 @@ def get_relationship_mentioned(collection):
     user_mentioned_user = list(user_mentioned_user.values())
 
     return user_mentioned_user
+
+
+client,database,collection = set_mongo_connection(
+    "mongodb://localhost:27017/",
+    "local",
+    "test"
+)
