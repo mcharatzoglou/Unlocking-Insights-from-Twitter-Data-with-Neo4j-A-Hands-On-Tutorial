@@ -153,7 +153,7 @@ def get_relationship_has_hashtag(collection):
             unique_ids.add(tweet_id)
             hashtag_set = set()
             for hashtag in tweet['entities']['hashtags']:
-                hashtag_set.add(hashtag['tag'])
+                hashtag_set.add(hashtag['tag'].lower())
             tweets_with_hashtags.append({
                 'tweet_id': tweet_id,
                 'hashtags': list(hashtag_set)
@@ -190,7 +190,7 @@ def get_relationship_used_hashtag(collection):
         if user_id not in user_used_hashtags:
             hashtag_set = set()
             for hashtag in tweet['entities']['hashtags']:
-                hashtag_set.add(hashtag['tag'])
+                hashtag_set.add(hashtag['tag'].lower())
             hashtag_list = list(hashtag_set)
             user_used_hashtags[user_id] = {
                 'id': user_id,
@@ -198,7 +198,7 @@ def get_relationship_used_hashtag(collection):
             }
         else:
             for hashtag in tweet['entities']['hashtags']:
-                user_used_hashtags[user_id]['hashtags'].append(hashtag['tag'])
+                user_used_hashtags[user_id]['hashtags'].append(hashtag['tag'].lower())
             user_used_hashtags[user_id]['hashtags'] = list(set(user_used_hashtags[user_id]['hashtags']))
 
     # convert dictionary to list
@@ -257,10 +257,3 @@ def get_relationship_mentioned(collection):
     user_mentioned_user = list(user_mentioned_user.values())
 
     return user_mentioned_user
-
-
-client,database,collection = set_mongo_connection(
-    "mongodb://localhost:27017/",
-    "local",
-    "test"
-)
