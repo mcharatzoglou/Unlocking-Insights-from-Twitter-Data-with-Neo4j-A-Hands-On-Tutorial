@@ -151,12 +151,12 @@ def get_relationship_has_hashtag(collection):
         tweet_id = tweet['id']
         if tweet_id not in unique_ids:
             unique_ids.add(tweet_id)
-            hashtag_list = []
+            hashtag_set = set()
             for hashtag in tweet['entities']['hashtags']:
-                hashtag_list.append(hashtag['tag'])
+                hashtag_set.add(hashtag['tag'])
             tweets_with_hashtags.append({
                 'tweet_id': tweet_id,
-                'hashtags': hashtag_list
+                'hashtags': list(hashtag_set)
             })
 
     return tweets_with_hashtags
