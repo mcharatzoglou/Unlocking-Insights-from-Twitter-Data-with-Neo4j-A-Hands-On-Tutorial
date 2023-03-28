@@ -122,7 +122,7 @@ def get_node_urls(collection):
 
 # RELATIONSHIPS
 def get_relationship_tweeted(collection):
-    documents = collection.find({"includes.tweets.0": {"$exists": True}})
+    documents = collection.find({"includes.tweets.0.referenced_tweets": {"$exists": False}})
     user_tweeted_tweet = {}
 
     for obj in documents:
@@ -133,14 +133,85 @@ def get_relationship_tweeted(collection):
         if user_id not in user_tweeted_tweet:
             user_tweeted_tweet[user_id] = {
                 'id': user_id,
-                'tweet_ids': [],
+                'tweeted': [],
                 'created_at_converted': []
             }
 
-        user_tweeted_tweet[user_id]['tweet_ids'].append(tweet_id)
+        user_tweeted_tweet[user_id]['tweeted'].append(tweet_id)
         user_tweeted_tweet[user_id]['created_at_converted'].append(created_at_converted)
 
     return list(user_tweeted_tweet.values())
+
+def get_relationship_retweeted(collection):
+    documents = collection.find({"includes.tweets.0.referenced_tweets": {"$exists": True}})
+    user_retweeted_tweet = {}
+
+    for obj in documents:
+        user_id = obj['includes']['users'][0]['id']
+        tweet_id = obj['includes']['tweets'][0]['id']
+        created_at_converted = obj['includes']['tweets'][0]['created_at_converted']
+        referenced_tweet_type = obj['includes']['tweets'][0]['referenced_tweets']
+        for reference in referenced_tweet_type:
+            if reference['type'] == 'retweeted':
+                if user_id not in user_retweeted_tweet:
+                    user_retweeted_tweet[user_id] = {
+                        'id': user_id,
+                        'retweeted': [],
+                        'created_at_converted': []
+                    }
+
+                user_retweeted_tweet[user_id]['retweeted'].append(tweet_id)
+                user_retweeted_tweet[user_id]['created_at_converted'].append(created_at_converted)
+
+    return list(user_retweeted_tweet.values())
+
+
+def get_relationship_quoted(collection):
+    documents = collection.find({"includes.tweets.0.referenced_tweets": {"$exists": True}})
+    user_quoted_tweet = {}
+
+    for obj in documents:
+        user_id = obj['includes']['users'][0]['id']
+        tweet_id = obj['includes']['tweets'][0]['id']
+        created_at_converted = obj['includes']['tweets'][0]['created_at_converted']
+        referenced_tweet_type = obj['includes']['tweets'][0]['referenced_tweets']
+        for reference in referenced_tweet_type:
+            if reference['type'] == 'quoted':
+                if user_id not in user_quoted_tweet:
+                    user_quoted_tweet[user_id] = {
+                        'id': user_id,
+                        'quoted': [],
+                        'created_at_converted': []
+                    }
+
+                user_quoted_tweet[user_id]['quoted'].append(tweet_id)
+                user_quoted_tweet[user_id]['created_at_converted'].append(created_at_converted)
+
+    return list(user_quoted_tweet.values())
+
+
+
+def get_relationship_replied_to(collection):
+    documents = collection.find({"includes.tweets.0.referenced_tweets": {"$exists": True}})
+    user_replied_to_tweet = {}
+
+    for obj in documents:
+        user_id = obj['includes']['users'][0]['id']
+        tweet_id = obj['includes']['tweets'][0]['id']
+        created_at_converted = obj['includes']['tweets'][0]['created_at_converted']
+        referenced_tweet_type = obj['includes']['tweets'][0]['referenced_tweets'][0]['type']
+        if referenced_tweet_type == 'replied_to':
+            if user_id not in user_replied_to_tweet:
+                user_replied_to_tweet[user_id] = {
+                    'id': user_id,
+                    'replied_to': [],
+                    'created_at_converted': []
+                }
+
+            user_replied_to_tweet[user_id]['replied_to'].append(tweet_id)
+            user_replied_to_tweet[user_id]['created_at_converted'].append(created_at_converted)
+
+    return list(user_replied_to_tweet.values())
 
 def get_relationship_has_hashtag(collection):
     documents = collection.find({"includes.tweets.0.entities.hashtags": {"$exists": True}})
