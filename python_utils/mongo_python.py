@@ -93,7 +93,7 @@ def get_node_hashtags(collection):
     for obj in documents:
         for hashtag in obj['includes']['tweets'][0]['entities']['hashtags']:
             count_all_hashtags +=1
-            hashtag_set.add(hashtag['tag'])
+            hashtag_set.add(hashtag['tag'].lower())
 
     hashtag_list = list(hashtag_set)
 
