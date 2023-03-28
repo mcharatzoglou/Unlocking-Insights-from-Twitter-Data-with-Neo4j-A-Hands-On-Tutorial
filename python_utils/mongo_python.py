@@ -70,7 +70,10 @@ def get_node_tweets(collection):
                     'tweet_id': reference_tweet['id']
                 })
         else:
-            reference_tweets_list = None
+            reference_tweets_list.append({
+                    'type':None,
+                    'tweet_id': None
+                })
 
 
         twitter_list.append({
