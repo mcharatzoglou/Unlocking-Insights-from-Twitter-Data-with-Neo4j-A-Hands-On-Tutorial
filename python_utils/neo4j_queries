@@ -1,0 +1,74 @@
+import py2neo
+
+port = input("Enter Neo4j DB Bolt port: ")
+user = input("Enter Neo4j DB Username: ")
+pswd = input("Enter Neo4j DB Password: ")
+#graph = Graph("bolt://localhost:7687", auth=("neo4j", "neo4j_auth")
+
+graph = py2neo.Graph(port, auth=(user, pswd))
+
+
+#Get the total number of retweets
+query1 = "MATCH p=()-[r:RETWEETED]->() RETURN COUNT(*)"
+retweets = graph.run(query1).evaluate()
+print("The total number of retweets is:", retweets)
+
+
+#Get the 20 most popular hashtags (case insensitive) in descending order
+query2 = """
+    MATCH p=()-[r:HAS_HASHTAG]->(n:Hashtag)
+    RETURN n.tag, COUNT(*) AS indegree
+    ORDER BY indegree DESC
+    LIMIT 20
+"""
+pop_hashtags = graph.run(query2)
+print('hashtag, frequency')
+for h in pop_hashtags:
+    print(h['n.tag'], h['indegree'])
+
+
+#Get the total number of URLs (unique)
+query3 = "MATCH (n:URL) RETURN COUNT(n)"
+urls = graph.run(query3).evaluate()
+print("The total number of urls is:", urls)
+
+
+#Get the 20 users with most followers in descending order
+query4 = """
+    MATCH (n:User)
+    WHERE n.followers IS NOT NULL
+    RETURN n.username, n.followers AS followers
+    ORDER BY followers DESC
+    LIMIT 20
+"""
+pop_users = graph.run(query4)
+print('username, number of followers')
+for u in pop_users:
+    print(u['n.username'], u['followers'])
+
+
+#Get the 20 users, in descending order, that have been mentioned the most
+query6 = """
+    MATCH p=()-[r:MENTIONED]->(n:User)
+    RETURN n.username, COUNT(*) AS indegree
+    ORDER BY indegree DESC
+    LIMIT 20
+"""
+most_mentioned_users = graph.run(query6)
+print('username, number of mentions')
+for m in most_mentioned_users:
+    print(m['n.username'], m['indegree'])
+
+
+'''Get the top 20 tweets that has been retweeted the most and the persons that
+posted them'''
+query7 = """
+    MATCH (n:Tweet)
+    RETURN n.id, n.author, n.retweets as retweets
+    ORDER BY retweets DESC
+    LIMIT 20
+"""
+most_retweeted = graph.run(query7)
+print('tweet_id, author_id, number of retweets')
+for r in most_retweeted:
+    print(r['n.id'], r['n.author'],r['retweets'])
