@@ -1,5 +1,4 @@
 import py2neo
-
 from  mongo_python import *
 
 client,database,collection = set_mongo_connection(
