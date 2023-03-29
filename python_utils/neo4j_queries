@@ -1,5 +1,8 @@
 import py2neo
+<<<<<<< HEAD
 import pandas as pd
+=======
+>>>>>>> 5e9cc220a72ab4d0965438da7de8b2006b622137
 
 port = input("Enter Neo4j DB Bolt port: ")
 user = input("Enter Neo4j DB Username: ")
@@ -70,6 +73,7 @@ query7 = """
     LIMIT 20
 """
 most_retweeted = graph.run(query7)
+<<<<<<< HEAD
 result_tweet_idsG, result_tweet_author_id, result_tweet_num_retweets = [], [], []
 
 for r in most_retweeted:
@@ -81,3 +85,8 @@ df = pd.DataFrame(list(zip(result_tweet_ids, result_tweet_author_id, result_twee
                columns =['tweet_id', 'author_id', 'num_retweets'])
 
 print(df)
+=======
+print('tweet_id, author_id, number of retweets')
+for r in most_retweeted:
+    print(r['n.id'], r['n.author'],r['retweets'])
+>>>>>>> 5e9cc220a72ab4d0965438da7de8b2006b622137
