@@ -1,6 +1,6 @@
 import py2neo
 
-from pymongo_utils import *
+from  mongo_python import *
 
 client,database,collection = set_mongo_connection(
     "mongodb://localhost:27017/",
