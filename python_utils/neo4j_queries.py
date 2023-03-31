@@ -83,7 +83,7 @@ df = pd.DataFrame(list(zip(result_tweet_ids, result_tweet_author_id, result_twee
 print(df)
 
 
-'''Get the 10 users with most similar hashtags to 
+'''Get the 20 users with most similar hashtags to 
 the 4th important user(as the others used no hashtags)'''
 
 def jaccard_sim(list1, list2):
@@ -112,7 +112,7 @@ def get_hashtags(name):
 
 
 def get_most_similar_user(name):
-    '''get the 10 users with most similar hashtags
+    '''get the 20 users with most similar hashtags
     to the 4th important user'''
 
     user_tags = get_hashtags(name)
