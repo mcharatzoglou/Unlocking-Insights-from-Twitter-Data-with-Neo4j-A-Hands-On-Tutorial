@@ -135,3 +135,40 @@ def get_most_similar_user(name):
 
 
 get_most_similar_user('WomensVoicesNow')
+
+
+#11 Get the top 10 users who have posted the most tweets, along with the number of tweets they've posted.
+query11 = """
+MATCH (u:User)-[:TWEETED]->(t:Tweet)
+WITH u, COUNT(t) AS num_tweets
+RETURN u.username AS username, num_tweets
+ORDER BY num_tweets DESC
+LIMIT 10
+"""
+
+result = graph.run(query11)
+
+for record in result:
+    print(record["username"], record["num_tweets"])
+
+
+#12 Find the top 10 users who have tweeted or retweeted the most since a given date (we chose 2022-01-01)
+from datetime import datetime
+
+# Convert the date string to a datetime object
+since_date = datetime.strptime('2022-01-01', '%Y-%m-%d')
+
+query12 = f'''
+    MATCH (u:User)-[r:TWEETED|RETWEETED]->()
+    WHERE datetime(r.created_at) >= datetime('{since_date.isoformat()}')
+    WITH u, count(r) AS tweet_count
+    ORDER BY tweet_count DESC
+    LIMIT 10
+    RETURN u.username, tweet_count
+'''
+
+result = graph.run(query12).data()
+
+print("Top 10 users by tweet/retweet count since", since_date.date())
+for row in result:
+    print(f"{row['u.username']}: {row['tweet_count']} tweets/retweets")
