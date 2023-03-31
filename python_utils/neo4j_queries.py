@@ -70,7 +70,7 @@ query7 = """
     LIMIT 20
 """
 most_retweeted = graph.run(query7)
-result_tweet_idsG, result_tweet_author_id, result_tweet_num_retweets = [], [], []
+result_tweet_ids, result_tweet_author_id, result_tweet_num_retweets = [], [], []
 
 for r in most_retweeted:
     result_tweet_ids.append(r['n.id'])
@@ -83,21 +83,22 @@ df = pd.DataFrame(list(zip(result_tweet_ids, result_tweet_author_id, result_twee
 print(df)
 
 
-
+'''Get the 10 users with most similar hashtags to 
+the 4th important user(as the others used no hashtags)'''
 
 def jaccard_sim(list1, list2):
-    intersec = len(list1.intersection(list2))
-    union = len(list1.union(list2))
+    '''compute Jaccard similarity of two sets'''
+    intersec = len(set(list1).intersection(set(list2)))
+    union = len(set(list1).union(set(list2)))
     if union>0:
         return intersec / union
     else:
         return 0
-    
 
 
 def get_hashtags(name):
     '''get the hashtags used by 4th important user
-    (as the others used no hashtags)'''
+    '''
 
     query = """
         MATCH (u:User)-[r:USED_HASHTAG]->(h:Hashtag)
@@ -106,25 +107,30 @@ def get_hashtags(name):
     """
     tags = graph.run(query,name = name)
     hashtags = [t["h.tag"] for t in tags]
-    print(hashtags)
+
+    return hashtags
 
 
 def get_most_similar_user(name):
+    '''get the 10 users with most similar hashtags
+    to the 4th important user'''
+
     user_tags = get_hashtags(name)
-    query = '''MATCH ((u:User)-[r:USED_HASHTAG]->(h:Hashtag)
+    query = '''MATCH (u:User)-[r:USED_HASHTAG]->(h:Hashtag)
     WHERE u.username <> $name
-    RETURN u.username, COLLECT(h.tag) AS hashtag'''
+    RETURN u.username, COLLECT(h.tag) AS hashtags'''
     result = graph.run(query, name=name)
-    tag_sim,  users = [], []
+    tag_sim,  users = list(), list()
     for r in result:
         other_user = r["u.username"]
         other_tags = r["hashtags"]
-        sim= jaccard_sim(user_tags, other_tags)
-        tag_sim.append(sim)
-        users.append(other_user)
-        tag_sim, users = zip(*sorted(zip(tag_sim, users)))
+        if len(other_tags)>0:
+            sim= jaccard_sim(user_tags, other_tags)
+            tag_sim.append(sim)
+            users.append(other_user)
+    tag_sim, users = zip(*sorted(zip(tag_sim, users)))
         
-    sim_user = users[-1]
+    sim_user = users[-20:]
     print(sim_user)
 
 
