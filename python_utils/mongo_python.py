@@ -306,7 +306,6 @@ def get_relationship_used_urls(collection):
 
     return user_used_urls
 
-
 def get_relationship_mentioned(collection):
     documents = collection.find({"includes.tweets.0.entities.mentions": {"$exists": True}})
     user_mentioned_user = {}
@@ -314,20 +313,19 @@ def get_relationship_mentioned(collection):
         tweet = obj['includes']['tweets'][0]
         user_id = obj['includes']['users'][0]['id']
         if user_id not in user_mentioned_user:
-            mention_set = set()
-            for mention in tweet['entities']['mentions']:
-                mention_set.add(mention['id'])
-            mention_list = list(mention_set)
-            user_mentioned_user[user_id] = {
-                'id': user_id,
-                'mentions': mention_list
-            }
-        else:
-            for mention in tweet['entities']['mentions']:
-                user_mentioned_user[user_id]['mentions'].append(mention['id'])
-            user_mentioned_user[user_id]['mentions'] = list(set(user_mentioned_user[user_id]['mentions']))
+            user_mentioned_user[user_id] = {}
+        for mention in tweet['entities']['mentions']:
+            mention_id = mention['id']
+            if mention_id != user_id:
+                if mention_id not in user_mentioned_user[user_id]:
+                    user_mentioned_user[user_id][mention_id] = 1
+                else:
+                    user_mentioned_user[user_id][mention_id] += 1
 
-    # convert dictionary to list
-    user_mentioned_user = list(user_mentioned_user.values())
+    # convert nested dictionary to list
+    user_mentioned_user_list = []
+    for user_id, mentions in user_mentioned_user.items():
+        mention_list = [{'id': mention_id, 'count': count} for mention_id, count in mentions.items()]
+        user_mentioned_user_list.append({'id': user_id, 'mentions': mention_list})
 
-    return user_mentioned_user
+    return user_mentioned_user_list
