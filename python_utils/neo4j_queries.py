@@ -47,6 +47,16 @@ print('username, number of followers')
 for u in pop_users:
     print(u['n.username'], u['followers'])
 
+#5 Get the hour with the most tweets and retweets
+query5 = """
+    MATCH (t:Tweet)
+    WITH substring(t.created_at, 11, 2) AS hour, t
+    RETURN hour, COUNT(DISTINCT t) AS tweet_count, SUM(t.retweet_count) AS retweet_count
+    ORDER BY tweet_count DESC, retweet_count DESC
+    LIMIT 1
+"""
+most_active_hour = graph.run(query5).evaluate()
+print("The hour with the most tweets and retweets is:", most_active_hour)
 
 #Get the 20 users, in descending order, that have been mentioned the most
 query6 = """
