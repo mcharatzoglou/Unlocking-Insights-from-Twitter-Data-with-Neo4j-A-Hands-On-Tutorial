@@ -158,13 +158,15 @@ get_most_similar_user('WomensVoicesNow')
   nodeProjection: 'User',
   relationshipProjection: {
     relType: {
-      type: '*',
+      type: 'MENTIONED',
       orientation: 'UNDIRECTED',
       properties: {}
     }
   }
 });
-:param generatedName => ('in-memory-graph-1680363897361');
+:param generatedName => ('in-memory-graph-1680370575783');
+
+CALL gds.graph.project($generatedName, $graphConfig.nodeProjection, $graphConfig.relationshipProjection, {})
 
 CALL gds.louvain.stream($generatedName, $config)
 YIELD nodeId, communityId AS community, intermediateCommunityIds AS communities
