@@ -146,6 +146,34 @@ def get_most_similar_user(name):
 
 get_most_similar_user('WomensVoicesNow')
 
+#10 Get the user communities that have been created based on the users’ interactions and visualise them (Louvain algorithm) (Cypher)
+:param limit => ( 42);
+:param config => ({
+  relationshipWeightProperty: null,
+  includeIntermediateCommunities: false,
+  seedProperty: ''
+});
+:param communityNodeLimit => ( 10);
+:param graphConfig => ({
+  nodeProjection: 'User',
+  relationshipProjection: {
+    relType: {
+      type: '*',
+      orientation: 'UNDIRECTED',
+      properties: {}
+    }
+  }
+});
+:param generatedName => ('in-memory-graph-1680363897361');
+
+CALL gds.louvain.stream($generatedName, $config)
+YIELD nodeId, communityId AS community, intermediateCommunityIds AS communities
+WITH gds.util.asNode(nodeId) AS node, community, communities
+WITH community, communities, collect(node) AS nodes
+RETURN community, communities, nodes[0..$communityNodeLimit] AS nodes, size(nodes) AS size
+ORDER BY size DESC
+LIMIT toInteger($limit)
+
 
 #11 Get the top 10 users who have posted the most tweets, along with the number of tweets they've posted.
 query11 = """
@@ -182,3 +210,24 @@ result = graph.run(query12).data()
 print("Top 10 users by tweet/retweet count since", since_date.date())
 for row in result:
     print(f"{row['u.username']}: {row['tweet_count']} tweets/retweets")
+
+#query810
+from neo4j import GraphDatabase
+
+driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "neo4j_auth"))
+
+query = """
+CALL gds.louvain.stream($generatedName, $config)
+YIELD nodeId, communityId AS community, intermediateCommunityIds AS communities
+WITH gds.util.asNode(nodeId) AS node, community, communities
+WITH community, communities, collect(node) AS nodes
+RETURN community, communities, nodes[0..$communityNodeLimit] AS nodes, size(nodes) AS size
+ORDER BY size DESC
+LIMIT toInteger($limit)
+"""
+
+with driver.session() as session:
+    result = session.run(query, generatedName="name", config={}, communityNodeLimit=10, limit=20)
+    for record in result:
+        print(record)
+
