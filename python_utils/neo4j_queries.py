@@ -1,5 +1,7 @@
 import py2neo
 import pandas as pd
+import numpy as np
+
 
 port = input("Enter Neo4j DB Bolt port: ")
 user = input("Enter Neo4j DB Username: ")
@@ -18,14 +20,13 @@ print("The total number of retweets is:", retweets)
 #Get the 20 most popular hashtags (case insensitive) in descending order
 query2 = """
     MATCH p=()-[r:HAS_HASHTAG]->(n:Hashtag)
-    RETURN n.tag, COUNT(*) AS indegree
-    ORDER BY indegree DESC
+    RETURN n.tag AS popular_hashtags, COUNT(*) AS frequency
+    ORDER BY frequency DESC
     LIMIT 20
 """
-pop_hashtags = graph.run(query2)
-print('hashtag, frequency')
-for h in pop_hashtags:
-    print(h['n.tag'], h['indegree'])
+pop_hashtags = graph.run(query2).to_data_frame()
+print('The 20 most popular hashtags in descending order are:')
+print(pop_hashtags)
 
 
 #Get the total number of URLs (unique)
@@ -38,53 +39,88 @@ print("The total number of urls is:", urls)
 query4 = """
     MATCH (n:User)
     WHERE n.followers IS NOT NULL
-    RETURN n.username, n.followers AS followers
+    RETURN n.username AS username, n.followers as followers
     ORDER BY followers DESC
     LIMIT 20
 """
-pop_users = graph.run(query4)
-print('username, number of followers')
-for u in pop_users:
-    print(u['n.username'], u['followers'])
+pop_users = graph.run(query4).to_data_frame()
+print('The 20 users with most followers in descending order are:')
+print(pop_users)
+
+'''usernames, followers = [], []
+
+for p in pop_users:
+    usernames.append(p['n.username'])
+    followers.append(p['followers'])
+
+df = pd.DataFrame(list(zip(usernames, followers)),
+               columns =['usernames', 'Number of followers'])
+
+print(df)'''
+
+
+#5 Get the hour with the most tweets and retweets
+query5 = """
+MATCH (u:User)-[:TWEETED]->(t:Tweet)
+WITH u, t, substring(t.created_at, 11, 2) AS hour
+RETURN u, t, toInteger(hour) AS tweet_hour
+UNION
+MATCH (u:User)-[:RETWEETED]->(t:Tweet)
+WITH u, t, substring(t.created_at, 11, 2) AS hour
+RETURN u, t, toInteger(hour) AS tweet_hour
+"""
+tweet_hour_df = graph.run(query5).to_data_frame()
+hour_count = tweet_hour_df.groupby(['tweet_hour']).count()['u'].values
+ind = np.argmax(hour_count)
+print('The  hour with the most tweets and retweets is the', ind,'th')
 
 
 #Get the 20 users, in descending order, that have been mentioned the most
 query6 = """
     MATCH p=()-[r:MENTIONED]->(n:User)
-    RETURN n.username, COUNT(*) AS indegree
-    ORDER BY indegree DESC
+    RETURN n.username AS username, COUNT(*) AS number_of_mentions
+    ORDER BY number_of_mentions DESC
     LIMIT 20
 """
-most_mentioned_users = graph.run(query6)
-print('username, number of mentions')
-for m in most_mentioned_users:
-    print(m['n.username'], m['indegree'])
+most_mentioned_users = graph.run(query6).to_data_frame()
+print('The 20 users, in descending order, that have been mentioned the most are:')
+print(most_mentioned_users)
 
 
-'''Get the top 20 tweets that has been retweeted the most and the persons that
+'''Get the top 20 tweets that have been retweeted the most and the persons that
 posted them'''
 query7 = """
     MATCH (n:Tweet)
-    RETURN n.id, n.author, n.retweets as retweets
+    RETURN n.id as tweet_id, n.author as author_id, n.retweets as retweets
     ORDER BY retweets DESC
     LIMIT 20
 """
-most_retweeted = graph.run(query7)
-result_tweet_ids, result_tweet_author_id, result_tweet_num_retweets = [], [], []
+most_retweeted = graph.run(query7).to_data_frame()
+print('The top 20 tweets that have been retweeted the most and the persons that posted them are:')
+print(most_retweeted)
 
-for r in most_retweeted:
-    result_tweet_ids.append(r['n.id'])
-    result_tweet_author_id.append(r['n.author'])
-    result_tweet_num_retweets.append(r['retweets'])
 
-df = pd.DataFrame(list(zip(result_tweet_ids, result_tweet_author_id, result_tweet_num_retweets)),
-               columns =['tweet_id', 'author_id', 'num_retweets'])
 
-print(df)
+#Run PageRank on the mention network
+query8_1 = """
+CALL gds.graph.project.cypher(
+    'mentionGraph',
+    'MATCH (u:User) RETURN id(u) AS id',
+    'MATCH (u:User)-[r:MENTIONED]-(u1:User) RETURN id(u) AS source, id(u1) AS target')
+"""
+query8_2 = """CALL gds.pageRank.stream('mentionGraph') YIELD nodeId, score
+RETURN gds.util.asNode(nodeId).username AS username, score
+ORDER BY score DESC LIMIT 10"""
+
+mention_graph = graph.run(query8_1)
+PR = graph.run(query8_2).to_data_frame()
+print("The 10 highest PageRank values for the 'Mentioned' network are:", PR)
+print("The most important user according to the highest PageRank value is:",
+      PR.iloc[0].values[0])
 
 
 '''Get the 20 users with most similar hashtags to 
-the 4th important user(as the others used no hashtags)'''
+the 6th important user(as the others used no hashtags)'''
 
 def jaccard_sim(list1, list2):
     '''compute Jaccard similarity of two sets'''
@@ -97,7 +133,7 @@ def jaccard_sim(list1, list2):
 
 
 def get_hashtags(name):
-    '''get the hashtags used by 4th important user
+    '''get the hashtags used by 6th important user
     '''
 
     query = """
@@ -110,16 +146,15 @@ def get_hashtags(name):
 
     return hashtags
 
-
 def get_most_similar_user(name):
     '''get the 20 users with most similar hashtags
-    to the 4th important user'''
+    to the 6th important user'''
 
     user_tags = get_hashtags(name)
-    query = '''MATCH (u:User)-[r:USED_HASHTAG]->(h:Hashtag)
+    query9 = '''MATCH (u:User)-[r:USED_HASHTAG]->(h:Hashtag)
     WHERE u.username <> $name
     RETURN u.username, COLLECT(h.tag) AS hashtags'''
-    result = graph.run(query, name=name)
+    result = graph.run(query9, name=name)
     tag_sim,  users = list(), list()
     for r in result:
         other_user = r["u.username"]
@@ -131,7 +166,44 @@ def get_most_similar_user(name):
     tag_sim, users = zip(*sorted(zip(tag_sim, users)))
         
     sim_user = users[-20:]
-    print(sim_user)
+    print('the 20 users who used most similar hashtags to the 6th important user are:', sim_user)
+
+get_most_similar_user('ToofaniBaba1')
 
 
-get_most_similar_user('WomensVoicesNow')
+'''Get the top 10 users who have posted the most tweets, 
+along with the number of tweets they've posted.'''
+query11 = """
+MATCH (u:User)-[:TWEETED]->(t:Tweet)
+WITH u, COUNT(t) AS number_of_tweets
+RETURN u.username AS username, number_of_tweets
+ORDER BY number_of_tweets DESC
+LIMIT 10
+"""
+
+active_users = graph.run(query11).to_data_frame()
+print('The top 10 users who have posted the most tweets, along with the number of tweets they have posted are:')
+print(active_users)
+
+
+query12 = """
+CALL gds.localClusteringCoefficient.stream('mentionGraph')
+YIELD nodeId, localClusteringCoefficient
+RETURN gds.util.asNode(nodeId).username AS username, localClusteringCoefficient
+ORDER BY localClusteringCoefficient DESC
+"""
+LCC = graph.run(query12)
+lcc_usernames, lcc = [], []
+for c in LCC:
+    lcc_usernames.append(c['username'])
+    lcc.append(c['localClusteringCoefficient'])
+
+df = pd.DataFrame(list(zip(lcc_usernames, lcc)),
+               columns =['Usernames', 'LCC'])
+
+print("The 10 highest PageRank values for the 'Mentioned' network are:", df)
+print("The most important user according to the highest PageRank value is:",
+      df.iloc[0].values[0])
+
+
+
