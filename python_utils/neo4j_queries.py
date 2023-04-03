@@ -135,7 +135,6 @@ def get_hashtags(name):
 
     return hashtags
 
-
 def get_most_similar_user(name):
     '''get the 20 users with most similar hashtags
     to the 6th important user'''
@@ -163,7 +162,6 @@ get_most_similar_user('ToofaniBaba1')
 
 '''Get the top 10 users who have posted the most tweets, 
 along with the number of tweets they've posted.'''
-
 query11 = """
 MATCH (u:User)-[:TWEETED]->(t:Tweet)
 WITH u, COUNT(t) AS number_of_tweets
