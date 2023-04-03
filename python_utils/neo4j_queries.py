@@ -50,13 +50,13 @@ print(pop_users)
 
 #5 Get the hour with the most tweets and retweets
 query5 = """
-MATCH (u:User)-[:TWEETED]->(t:Tweet)
-WITH u, t, substring(t.created_at, 11, 2) AS hour
-RETURN u, t, toInteger(hour) AS tweet_hour
-UNION
-MATCH (u:User)-[:RETWEETED]->(t:Tweet)
-WITH u, t, substring(t.created_at, 11, 2) AS hour
-RETURN u, t, toInteger(hour) AS tweet_hour
+    MATCH (u:User)-[:TWEETED]->(t:Tweet)
+    WITH u, t, substring(t.created_at, 11, 2) AS hour
+    RETURN u, t, toInteger(hour) AS tweet_hour
+    UNION
+    MATCH (u:User)-[:RETWEETED]->(t:Tweet)
+    WITH u, t, substring(t.created_at, 11, 2) AS hour
+    RETURN u, t, toInteger(hour) AS tweet_hour
 """
 tweet_hour_df = graph.run(query5).to_data_frame()
 hour_count = tweet_hour_df.groupby(['tweet_hour']).count()['u'].values
@@ -89,7 +89,6 @@ print('The top 20 tweets that have been retweeted the most and the persons that 
 print(most_retweeted)
 
 
-
 #Run PageRank on the mention network
 query8_1 = """
 CALL gds.graph.project.cypher(
@@ -97,9 +96,11 @@ CALL gds.graph.project.cypher(
     'MATCH (u:User) RETURN id(u) AS id',
     'MATCH (u:User)-[r:MENTIONED]-(u1:User) RETURN id(u) AS source, id(u1) AS target')
 """
-query8_2 = """CALL gds.pageRank.stream('mentionGraph') YIELD nodeId, score
-RETURN gds.util.asNode(nodeId).username AS username, score
-ORDER BY score DESC LIMIT 10"""
+query8_2 = """
+    CALL gds.pageRank.stream('mentionGraph') 
+    YIELD nodeId, score
+    RETURN gds.util.asNode(nodeId).username AS username, score
+    ORDER BY score DESC LIMIT 10"""
 
 mention_graph = graph.run(query8_1)
 PR = graph.run(query8_2).to_data_frame()
@@ -141,8 +142,8 @@ def get_most_similar_user(name):
 
     user_tags = get_hashtags(name)
     query9 = '''MATCH (u:User)-[r:USED_HASHTAG]->(h:Hashtag)
-    WHERE u.username <> $name
-    RETURN u.username, COLLECT(h.tag) AS hashtags'''
+        WHERE u.username <> $name
+        RETURN u.username, COLLECT(h.tag) AS hashtags'''
     result = graph.run(query9, name=name)
     tag_sim,  users = list(), list()
     for r in result:
@@ -160,16 +161,25 @@ def get_most_similar_user(name):
 get_most_similar_user('ToofaniBaba1')
 
 
+'''Get the community that each user belongs to in the MENTION 
+graph according to Louvain algorithm'''
+query10 = """
+    CALL gds.louvain.stream('mentionGraph') 
+    YIELD  nodeId, communityId
+    RETURN gds.util.asNode(nodeId).username AS username, communityId"""
+communities = graph.run(query10).to_data_frame()
+print(communities)
+
+
 '''Get the top 10 most active users  
 along with the number of posts they have made.'''
 query11 = """
-MATCH (u:User)-[:TWEETED]->(t:Tweet)
-WITH u, COUNT(t) AS number_of_posts
-RETURN u.username AS username, number_of_posts
-ORDER BY number_of_posts DESC
-LIMIT 10
+    MATCH (u:User)-[:TWEETED]->(t:Tweet)
+    WITH u, COUNT(t) AS number_of_posts
+    RETURN u.username AS username, number_of_posts
+    ORDER BY number_of_posts DESC
+    LIMIT 10
 """
-
 active_users = graph.run(query11).to_data_frame()
 print('The top 10 most active users along with the number of posts they have made:')
 print(active_users)
@@ -177,8 +187,8 @@ print(active_users)
 
 #Get the volumes of each type of tweets (where None is a tweet)
 query12 = """
-MATCH (t:Tweet)
-RETURN t.type AS type, COUNT(t) AS volume
+    MATCH (t:Tweet)
+    RETURN t.type AS type, COUNT(t) AS volume
 """
 types = graph.run(query12).to_data_frame()
 print('The volumes of each type of tweets are:')
