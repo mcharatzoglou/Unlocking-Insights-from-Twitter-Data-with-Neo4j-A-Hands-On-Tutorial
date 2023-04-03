@@ -47,17 +47,6 @@ pop_users = graph.run(query4).to_data_frame()
 print('The 20 users with most followers in descending order are:')
 print(pop_users)
 
-'''usernames, followers = [], []
-
-for p in pop_users:
-    usernames.append(p['n.username'])
-    followers.append(p['followers'])
-
-df = pd.DataFrame(list(zip(usernames, followers)),
-               columns =['usernames', 'Number of followers'])
-
-print(df)'''
-
 
 #5 Get the hour with the most tweets and retweets
 query5 = """
@@ -146,6 +135,7 @@ def get_hashtags(name):
 
     return hashtags
 
+
 def get_most_similar_user(name):
     '''get the 20 users with most similar hashtags
     to the 6th important user'''
@@ -173,6 +163,7 @@ get_most_similar_user('ToofaniBaba1')
 
 '''Get the top 10 users who have posted the most tweets, 
 along with the number of tweets they've posted.'''
+
 query11 = """
 MATCH (u:User)-[:TWEETED]->(t:Tweet)
 WITH u, COUNT(t) AS number_of_tweets
@@ -186,24 +177,13 @@ print('The top 10 users who have posted the most tweets, along with the number o
 print(active_users)
 
 
+#Get the volumes of each type of tweets (where None is a tweet)
 query12 = """
-CALL gds.localClusteringCoefficient.stream('mentionGraph')
-YIELD nodeId, localClusteringCoefficient
-RETURN gds.util.asNode(nodeId).username AS username, localClusteringCoefficient
-ORDER BY localClusteringCoefficient DESC
+MATCH (t:Tweet)
+RETURN t.type AS type, COUNT(t) AS volume
 """
-LCC = graph.run(query12)
-lcc_usernames, lcc = [], []
-for c in LCC:
-    lcc_usernames.append(c['username'])
-    lcc.append(c['localClusteringCoefficient'])
-
-df = pd.DataFrame(list(zip(lcc_usernames, lcc)),
-               columns =['Usernames', 'LCC'])
-
-print("The 10 highest PageRank values for the 'Mentioned' network are:", df)
-print("The most important user according to the highest PageRank value is:",
-      df.iloc[0].values[0])
-
+types = graph.run(query12).to_data_frame()
+print('The volumes of each type of tweets are:')
+print(types)
 
 
