@@ -160,18 +160,18 @@ def get_most_similar_user(name):
 get_most_similar_user('ToofaniBaba1')
 
 
-'''Get the top 10 users who have posted the most tweets, 
-along with the number of tweets they've posted.'''
+'''Get the top 10 most active users  
+along with the number of posts they have made.'''
 query11 = """
 MATCH (u:User)-[:TWEETED]->(t:Tweet)
-WITH u, COUNT(t) AS number_of_tweets
-RETURN u.username AS username, number_of_tweets
-ORDER BY number_of_tweets DESC
+WITH u, COUNT(t) AS number_of_posts
+RETURN u.username AS username, number_of_posts
+ORDER BY number_of_posts DESC
 LIMIT 10
 """
 
 active_users = graph.run(query11).to_data_frame()
-print('The top 10 users who have posted the most tweets, along with the number of tweets they have posted are:')
+print('The top 10 most active users along with the number of posts they have made:')
 print(active_users)
 
 
