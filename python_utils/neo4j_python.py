@@ -84,7 +84,7 @@ def input_user_tag_rel(rel_data):
     
         user_id = user["id"]
         user_node = py2neo.Node("User", id=user_id)
-        graph.merge(user_node, "User", "id") #merge tweet nodes based on id
+        graph.merge(user_node, "User", "id") #merge user nodes based on id
         
         for hashtag in user["hashtags"]:
             hashtag_node = py2neo.Node("Hashtag", tag=hashtag)
@@ -122,7 +122,7 @@ def input_user_tweet_rel(rel_data):
         for tweet in user["tweeted"]:
 
             tweet_node = py2neo.Node("Tweet", id=tweet)
-            graph.merge(tweet_node, "Tweet", "id") #merge url nodes based on url
+            graph.merge(tweet_node, "Tweet", "id") #merge tweet nodes based on id
             
             rel = py2neo.Relationship(user_node, "TWEETED", 
                         tweet_node, created_at=user["created_at_converted"][i])
@@ -139,11 +139,11 @@ def input_user_retweet_rel(rel_data):
 
         user_id = user["id"]
         user_node = py2neo.Node("User", id=user_id)
-        graph.merge(user_node, "User", "id") #merge tweet nodes based on id
+        graph.merge(user_node, "User", "id") #merge user nodes based on id
         i = 0
         for tweet in user["retweeted"]:
             tweet_node = py2neo.Node("Tweet", id=tweet)
-            graph.merge(tweet_node, "Tweet", "id") #merge url nodes based on url
+            graph.merge(tweet_node, "Tweet", "id") #merge tweet nodes based on id
             
             rel = py2neo.Relationship(user_node, "RETWEETED", 
                         tweet_node, created_at=user["created_at_converted"][i])
@@ -157,11 +157,11 @@ def input_user_quoted_rel(rel_data):
    
         user_id = user["id"]
         user_node = py2neo.Node("User", id=user_id)
-        graph.merge(user_node, "User", "id") #merge tweet nodes based on id
+        graph.merge(user_node, "User", "id") #merge user nodes based on id
         i = 0
         for tweet in user["quoted"]:
             tweet_node = py2neo.Node("Tweet", id=tweet)
-            graph.merge(tweet_node, "Tweet", "id") #merge url nodes based on url
+            graph.merge(tweet_node, "Tweet", "id") #merge tweet nodes based on id
             
             rel = py2neo.Relationship(user_node, "QUOTED", 
                         tweet_node, created_at=user["created_at_converted"][i])
@@ -175,11 +175,11 @@ def input_user_replied_to_rel(rel_data):
     for user in rel_data:
         user_id = user["id"]
         user_node = py2neo.Node("User", id=user_id)
-        graph.merge(user_node, "User", "id") #merge tweet nodes based on id
+        graph.merge(user_node, "User", "id") #merge user nodes based on id
         i = 0
         for tweet in user["replied_to"]:
             tweet_node = py2neo.Node("Tweet", id=tweet)
-            graph.merge(tweet_node, "Tweet", "id") #merge url nodes based on url
+            graph.merge(tweet_node, "Tweet", "id") #merge tweet nodes based on id
             
             rel = py2neo.Relationship(user_node, "REPLIED_TO", 
                         tweet_node, created_at=user["created_at_converted"][i])
@@ -193,11 +193,11 @@ def input_user_user_rel(rel_data):
 
         user_id = user["id"]
         user_node = py2neo.Node("User", id=user_id)
-        graph.merge(user_node, "User", "id") #merge tweet nodes based on id
+        graph.merge(user_node, "User", "id") #merge user nodes based on id
         
         for mentioned_user in user["mentions"]:
             mentioned_user_node = py2neo.Node("User", id=mentioned_user)
-            graph.merge(mentioned_user_node, "User", "id") #merge url nodes based on url
+            graph.merge(mentioned_user_node, "User", "id") #merge user nodes based on id
             
             rel = py2neo.Relationship(user_node, "MENTIONED", mentioned_user_node)
             graph.create(rel)
