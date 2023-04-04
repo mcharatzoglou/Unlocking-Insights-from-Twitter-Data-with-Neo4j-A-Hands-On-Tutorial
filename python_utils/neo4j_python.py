@@ -84,7 +84,7 @@ def input_user_tag_rel(rel_data):
     
         user_id = user["id"]
         user_node = py2neo.Node("User", id=user_id)
-        graph.merge(user_node, "User", "id") #merge tweet nodes based on id
+        graph.merge(user_node, "User", "id") #merge user nodes based on id
         
         for hashtag in user["hashtags"]:
             hashtag_node = py2neo.Node("Hashtag", tag=hashtag)
