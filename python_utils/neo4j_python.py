@@ -48,9 +48,8 @@ def input_urls(data):
         #graph.merge(node, "URL", "address")
 
 
-
 def input_users(data):
-    '''Create nodes with "Tweet" label in Neo4j'''
+    '''Create nodes with "Users" label in Neo4j'''
 
     for i in range(len(data)):
         node = py2neo.Node("User", id=data[i]['id'], 
@@ -215,7 +214,7 @@ input_hashtags(hashtag_list)
 
 #list of urls
 url_list  = get_node_urls(collection)
-#create Nodes of hashtags in Neo4j
+#create Nodes of urls in Neo4j
 input_urls(url_list)
 
 
@@ -256,7 +255,7 @@ user_quote_rel = get_relationship_quoted(collection)
 #create Relationship QUOTED in Neo4j
 input_user_quoted_rel(user_quote_rel)
 
-#list of dicts of user_ids and the corresponding retweet ids
+#list of dicts of user_ids and the corresponding replied_to ids
 user_replied_to_rel = get_relationship_replied_to(collection)
 #create Relationship REPLIED TO in Neo4j
 input_user_replied_to_rel(user_replied_to_rel)
