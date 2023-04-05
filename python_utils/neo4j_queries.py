@@ -57,7 +57,7 @@ hour_count = tweet_hour_df.groupby(['tweet_hour']).count()['u'].values
 ind = np.argmax(hour_count)
 print('The  hour with the most tweets and retweets is the', ind, 'th')
 
-#6 Get the 20 users, in descending order, that have been mentioned the most
+# 6 Get the 20 users, in descending order, that have been mentioned the most
 query6 = """
     MATCH p=()-[r:MENTIONED]->(n:User)
     RETURN n.username AS username, COUNT(*) AS number_of_mentions
@@ -92,9 +92,9 @@ query8_2 = """
     RETURN gds.util.asNode(nodeId).username AS username, score
     ORDER BY score DESC LIMIT 10"""
 
-#mention_graph = graph.run(query8_1)
+mention_graph = graph.run(query8_1)
 PR = graph.run(query8_2).to_data_frame()
-print("The 10 highest PageRank values for the 'Mentioned' network are:", PR)
+print("The 10 highest PageRank scores for the 'Mentioned' network are:", PR)
 print("The most important user according to the highest PageRank value is:",
       PR.iloc[0].values[0])
 
@@ -166,7 +166,7 @@ active_users = graph.run(query11).to_data_frame()
 print('The top 10 most active users along with the number of posts they have made:')
 print(active_users)
 
-# Get the volumes of each type of tweets (where None is a tweet)
+#12 Get the volumes of each type of tweets (where None is a tweet)
 query12 = """
     MATCH (t:Tweet)
     RETURN t.type AS type, COUNT(t) AS volume
