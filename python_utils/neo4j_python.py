@@ -1,19 +1,8 @@
 import py2neo
-from  mongo_python import *
 
-client,database,collection = set_mongo_connection(
-    "mongodb://localhost:27017/",
-    "twitter_db",
-    "tweets"
-)
+#note that you have to setup neo4j first!
+graph = py2neo.Graph("bolt://localhost:7687", auth=("neo4j", "neo4j_auth"))
 
-
-port = input("Enter Neo4j DB Bolt port: ")
-user = input("Enter Neo4j DB Username: ")
-pswd = input("Enter Neo4j DB Password: ")
-#graph = Graph("bolt://localhost:7687", auth=("neo4j", "neo4j_auth")
-
-graph = py2neo.Graph(port, auth=(user, pswd))
 
 
 def input_tweets(data):
@@ -202,66 +191,4 @@ def input_user_user_rel(rel_data):
             graph.create(rel)
 
 
-#list of dicts for tweets
-tweet_list  = get_node_tweets(collection)
-#create Nodes of tweets in Neo4j
-input_tweets(tweet_list)
-
-#list of hashtags
-hashtag_list  = get_node_hashtags(collection)
-#create Nodes of hashtags in Neo4j
-input_hashtags(hashtag_list)
-
-#list of urls
-url_list  = get_node_urls(collection)
-#create Nodes of urls in Neo4j
-input_urls(url_list)
-
-
-#list of dicts for users
-user_list  = get_node_users(collection)
-#create Nodes of users in Neo4j
-input_users(user_list)
-
-
-#list of dicts of tweet_ids and the corresponding hashtags
-tweet_hashtag_rel = get_relationship_has_hashtag(collection)
-#create Relationship HAS_HASHTAG in Neo4j
-input_tweet_tag_rel(tweet_hashtag_rel)
-
-#list of dicts of tweet_ids and the corresponding urls
-tweet_url_rel = get_relationship_has_url(collection)
-#create Relationship HAS_URL in Neo4j
-input_tweet_url_rel(tweet_url_rel)
-
-#list of dicts of user_ids and the corresponding hashtags
-user_hashtag_rel = get_relationship_used_hashtag(collection)
-#create Relationship USED_HASHTAG in Neo4j
-input_user_tag_rel(user_hashtag_rel)
-
-
-#list of dicts of user_ids and the corresponding tweet ids
-user_tweet_rel = get_relationship_tweeted(collection)
-#create Relationship TWEETED in Neo4j
-input_user_tweet_rel(user_tweet_rel)
-
-#list of dicts of user_ids and the corresponding retweet ids
-user_retweet_rel = get_relationship_retweeted(collection)
-#create Relationship RETWEETED in Neo4j
-input_user_retweet_rel(user_retweet_rel)
-
-#list of dicts of user_ids and the corresponding quoted tweeets ids
-user_quote_rel = get_relationship_quoted(collection)
-#create Relationship QUOTED in Neo4j
-input_user_quoted_rel(user_quote_rel)
-
-#list of dicts of user_ids and the corresponding replied_to ids
-user_replied_to_rel = get_relationship_replied_to(collection)
-#create Relationship REPLIED TO in Neo4j
-input_user_replied_to_rel(user_replied_to_rel)
-
-#list of dicts of user_ids and the corresponding mentioned user ids
-user_user_rel = get_relationship_mentioned(collection)
-#create Relationship MENTIONED in Neo4j
-input_user_user_rel(user_user_rel)
 
